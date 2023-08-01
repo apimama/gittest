@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Stash all changes not added to the index so we check only what will be committed
+git stash -q --keep-index
+
+# Get a list of all Kotlin files that have been changed
+changed_files=$(git diff --cached --name-only --diff-filter=d | grep "\.kt$")
+
+# Run ktlint -F on each changed file
+for file in $changed_files; do
+  ktlint -F "$file"
+  git add "$file"
+done
+
+# Unstash changes
+git stash pop -q
+
+# Exit successfully if no issues were found
+exit 0
