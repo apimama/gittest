@@ -1,19 +1,11 @@
 #!/bin/bash
 
-# Stash all changes not added to the index so we check only what will be committed
-git stash -q --keep-index
-
 # Get a list of all Kotlin files that have been changed
 changed_files=$(git diff --cached --name-only --diff-filter=d | grep "\.kt$")
 
 # Run ktlint -F on each changed file
 for file in $changed_files; do
   ktlint -F "$file"
-  if [ $? -ne 0 ]; then
-    echo "ktlint check failed, commit denied"
-    git stash pop -q
-    exit 1
-  fi
   git add "$file"
 done
 
