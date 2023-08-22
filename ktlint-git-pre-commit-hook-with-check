@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Flag to track if any files were auto-formatted
+auto_formatted=false
+
+# Get a list of all Kotlin files that have been added to the index
+changed_files=$(git diff --cached --name-only --diff-filter=d | grep "\.kt$")
+
+# Run ktlint -F on each changed file
+for file in $changed_files; do
+  echo "Running ktlint on $file"
+  # Backup the file
+  cp "$file" "$file.bak"
+  # Run ktlint with auto-format
+  ktlint -F "$file"
+  # Check if the file was changed by the auto-formatting
+  if ! cmp -s "$file" "$file.bak"; then
+    echo "$file was auto-formatted by ktlint."
+    auto_formatted=true
+  fi
+  # Remove the backup file
+  rm "$file.bak"
+done
+
+if $auto_formatted ; then
+  echo "Some files were auto-formatted. Please review and commit again."
+  exit 1
+else
+  echo "No files were auto-formatted. Proceed with commit."
+  exit 0
+fi
